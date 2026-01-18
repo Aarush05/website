@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Question</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background: radial-gradient(circle at top, #ffe6eb, #ffd1dc, #ffc2d1);
+      overflow: hidden;
+    }
+
+    h1 {
+      position: absolute;
+      top: 18%;
+      width: 100%;
+      text-align: center;
+      font-size: 2.8rem;
+      font-weight: 600;
+      color: #2b2b2b;
+      letter-spacing: -0.5px;
+    }
+
+    button {
+      position: absolute;
+      padding: 16px 38px;
+      font-size: 1.1rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.3s ease, background 0.4s ease;
+    }
+
+    #yes {
+      background: linear-gradient(135deg, #ff4d6d, #ff758f);
+      color: white;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 15px 30px rgba(255, 77, 109, 0.35);
+    }
+
+    #yes:hover {
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+
+    #no {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      color: #444;
+      left: 60%;
+      top: 55%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .celebrate {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-size: 3.2rem;
+      font-weight: 600;
+      color: #ff4d6d;
+      animation: pop 0.6s ease forwards;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Can I be your boyfriend?</h1>
+
+  <button id="yes">Yes 💖</button>
+  <button id="no">No</button>
+
+  <canvas id="confetti"></canvas>
+
+  <script>
+    const noBtn = document.getElementById("no");
+    const yesBtn = document.getElementById("yes");
+
+    let noX = window.innerWidth * 0.6;
+    let noY = window.innerHeight * 0.55;
+    let noIsYes = false;
+
+    function moveNo(dx, dy) {
+      noX += dx;
+      noY += dy;
+
+      const padding = 40;
+      noX = Math.max(padding, Math.min(noX, window.innerWidth - noBtn.offsetWidth - padding));
+      noY = Math.max(padding, Math.min(noY, window.innerHeight - noBtn.offsetHeight - padding));
+
+      noBtn.style.left = `${noX}px`;
+      noBtn.style.top = `${noY}px`;
+    }
+
+    document.addEventListener("mousemove", (e) => {
+      if (noIsYes) return;
+
+      const rect = noBtn.getBoundingClientRect();
+      const btnX = rect.left + rect.width / 2;
+      const btnY = rect.top + rect.height / 2;
+
+      const dx = btnX - e.clientX;
+      const dy = btnY - e.clientY;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance < 140) {
+        const force = (140 - distance) / 8;
+        moveNo((dx / distance) * force * 8, (dy / distance) * force * 8);
+      }
+    });
+
+    // NO CLICK → BECOMES YES
+    noBtn.addEventListener("click", () => {
+      if (noIsYes) {
+        yesBtn.click();
+        return;
+      }
+
+      noIsYes = true;
+      noBtn.textContent = "Yes 💖";
+      noBtn.style.background = "linear-gradient(135deg, #ff4d6d, #ff758f)";
+      noBtn.style.color = "white";
+      noBtn.style.boxShadow = "0 15px 30px rgba(255, 77, 109, 0.35)";
+      noBtn.style.transform = "scale(1.05)";
+    });
+
+    // YES CLICK
+    yesBtn.addEventListener("click", () => {
+      document.body.innerHTML = `
+        <div class="celebrate">
+          YIPPEEEE 🎉<br>
+          WOOOOHOOOO 🥳
+        </div>
+        <canvas id="confetti"></canvas>
+      `;
+      startConfetti();
+    });
+
+    // CONFETTI
+    function startConfetti() {
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+
+      let confetti = [];
+
+      for (let i = 0; i < 300; i++) {
+        confetti.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 6 + 3,
+          c: `hsl(${Math.random() * 360},100%,60%)`,
+          s: Math.random() * 4 + 2
+        });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confetti.forEach(p => {
+          ctx.beginPath();
+          ctx.fillStyle = p.c;
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          p.y += p.s;
+        });
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    }
+  </script>
+
+</body>
+</html>
+
